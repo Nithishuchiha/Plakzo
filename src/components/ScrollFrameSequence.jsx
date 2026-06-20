@@ -1,0 +1,154 @@
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const FRAME_PATH = '/images/Entire_website_scrollable_animation/ezgif-frame-'
+const PAD = (n) => String(n).padStart(3, '0')
+
+/**
+ * ScrollFrameSequence — Reusable scroll-linked frame animation.
+ *
+ * Props:
+ *   frameStart      {number}  First frame number (1-based)
+ *   frameEnd        {number}  Last frame number (1-based, inclusive)
+ *   scrollTriggerId {string}  Unique ID for this section's ScrollTrigger
+ *   scrollTrigger   {object}  ScrollTrigger config overrides (trigger, start, end, pin, etc.)
+ *   spacerHeight    {string}  CSS height for the scroll spacer (default '200vh')
+ *   children        {node|fn} Overlay content, or (progress) => node render prop
+ *   onProgress      {fn}      Callback with normalized progress (0–1) per scroll tick
+ *   onFrameChange   {fn}      Callback with current frame number on each frame swap
+ *   className       {string}  Optional wrapper class
+ *   style           {object}  Optional wrapper style overrides
+ */
+export default function ScrollFrameSequence({
+  frameStart = 1,
+  frameEnd = 40,
+  scrollTriggerId = 'frame-seq',
+  scrollTrigger: stConfig = {},
+  spacerHeight = '200vh',
+  children,
+  onProgress,
+  onFrameChange,
+  frameOverride = null,
+  className,
+  style,
+}) {
+  const wrapperRef  = useRef(null)
+  const imgRef      = useRef(null)
+  const stRef       = useRef(null)
+  const rafRef      = useRef(null)
+  const preloadCache = useRef(new Set())
+
+  const totalFrames = frameEnd - frameStart + 1
+  const [progress, setProgress] = useState(0)
+  const [currentFrame, setCurrentFrame] = useState(frameStart)
+
+  const preloadFrames = useCallback(() => {
+    for (let i = frameStart; i <= frameEnd; i++) {
+      if (preloadCache.current.has(i)) continue
+      const img = new Image()
+      img.src = `${FRAME_PATH}${PAD(i)}.png`
+      preloadCache.current.add(i)
+    }
+  }, [frameStart, frameEnd])
+
+  const unloadFrames = useCallback(() => {
+    preloadCache.current.clear()
+  }, [])
+
+  const setFrame = useCallback((frame) => {
+    if (!imgRef.current) return
+    const clamped = Math.max(frameStart, Math.min(frameEnd, frame))
+    imgRef.current.src = `${FRAME_PATH}${PAD(clamped)}.png`
+    setCurrentFrame(clamped)
+  }, [frameStart, frameEnd])
+
+  // Throttled scroll handler
+  const onScroll = useCallback(() => {
+    if (!wrapperRef.current) return
+    const rect = wrapperRef.current.getBoundingClientRect()
+    const h = wrapperRef.current.offsetHeight - window.innerHeight
+    const p = Math.min(Math.max(-rect.top / h, 0), 1)
+    setProgress(p)
+    onProgress?.(p)
+  }, [onProgress])
+
+  // Animation tick: map progress → frame
+  const tick = useCallback(() => {
+    const frame = Math.round(frameStart + progress * (totalFrames - 1))
+    setFrame(frameOverride ?? frame)
+    onFrameChange?.(frameOverride ?? frame)
+  }, [progress, frameStart, totalFrames, setFrame, frameOverride, onFrameChange])
+
+  useEffect(() => {
+    if (!wrapperRef.current) return
+
+    preloadFrames()
+
+    stRef.current = ScrollTrigger.create({
+      trigger: wrapperRef.current,
+      start: 'top bottom',
+      end: 'bottom top',
+      onLeave: () => unloadFrames(),
+      onLeaveBack: () => unloadFrames(),
+      onEnter: () => preloadFrames(),
+      onEnterBack: () => preloadFrames(),
+      ...stConfig,
+    })
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    tick()
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      stRef.current?.kill()
+      stRef.current = null
+    }
+  }, [frameStart, frameEnd, totalFrames, setFrame, preloadFrames, unloadFrames, onProgress, stConfig])
+
+  return (
+    <div
+      ref={wrapperRef}
+      className={className}
+      style={{ position: 'relative', background: '#000', ...style }}
+    >
+      {/* Sticky viewport */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          width: '100%',
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Frame image */}
+        <img
+          ref={imgRef}
+          src={`${FRAME_PATH}${PAD(frameStart)}.png`}
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+
+        {/* Overlay content */}
+        {typeof children === 'function'
+          ? children(progress, currentFrame)
+          : children}
+      </div>
+
+      {/* Scroll spacer */}
+      <div style={{ height: spacerHeight }} />
+    </div>
+  )
+}
