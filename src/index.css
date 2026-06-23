@@ -84,6 +84,17 @@ body {
   grid-template-columns: 1fr !important;
 }
 
+/* Journey cards: equal height on desktop */
+.journey-card-inner {
+  height: auto;
+}
+@media (min-width: 768px) {
+  .journey-card-inner {
+    height: 260px;
+    overflow: hidden;
+  }
+}
+
 /* ─── Premium Button Classes ─── */
 .btn-brand {
   display: inline-flex;
@@ -215,6 +226,9 @@ body {
   justify-content: space-between;
   padding: 16px 24px;
   pointer-events: auto;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .navbar-wordmark {
@@ -284,6 +298,10 @@ body {
 @media (min-width: 768px) {
   .desktop-nav {
     display: block;
+  }
+
+  .navbar-topbar {
+    display: none !important;
   }
 
   .navbar-hamburger {

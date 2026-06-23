@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { ScrambleTextPlugin } from 'gsap/dist/ScrambleTextPlugin'
 import { SplitText } from 'gsap/dist/SplitText'
@@ -9,8 +10,10 @@ import TargetCursor from './TargetCursor'
 import Waves from './Waves'
 import Navbar from './Navbar'
 import Galaxy from './Galaxy'
-import BubbleMenu from './BubbleMenu'
+import Plasma from './Plasma'
 import PillNav from './PillNav'
+import Contact from './Contact'
+import { GALLERY_ITEMS } from '../data/galleryItems'
 
 gsap.registerPlugin(ScrambleTextPlugin, SplitText, ScrollTrigger)
 
@@ -151,7 +154,7 @@ function JourneyCard({ step, isActive, isCurrent }) {
         onMouseLeave={onMouseLeave}
         style={{ width: '100%', perspective: '900px', cursor: 'default' }}
       >
-        <div style={{
+        <div className="journey-card-inner" style={{
           position: 'relative',
           padding: 'clamp(16px, 1.8vw, 24px)',
           border: isActive ? `1px solid ${step.color}` : '1px solid var(--color-hairline)',
@@ -259,6 +262,8 @@ function JourneyCard({ step, isActive, isCurrent }) {
 
 // ─── Main Component ───────────────────────────────────────────────
 export default function ShowcaseScroll() {
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const heroRef        = useRef(null)
   const servicesRef    = useRef(null)
   const materialsRef   = useRef(null)
@@ -282,6 +287,22 @@ export default function ShowcaseScroll() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Scroll to specific section if query param present
+  useEffect(() => {
+    const scrollTo = searchParams.get('scrollTo')
+    if (scrollTo === 'gallery') {
+      // Progress = scrollY / (wrapper.offsetHeight - innerHeight)
+      // wrapper = viewport (100vh) + spacer (1100vh) = 1200vh
+      // h = 1200vh - 100vh = 1100vh = 11 * innerHeight
+      // Gallery visible at progress 0.70–0.89, target 0.78 (midpoint)
+      const h = 11 * window.innerHeight
+      const scrollTarget = 0.78 * h
+      setTimeout(() => {
+        window.scrollTo({ top: scrollTarget, behavior: 'instant' })
+      }, 50)
+    }
+  }, [searchParams])
 
   // Gamification state
   const [activeStep, setActiveStep] = useState(-1)
@@ -440,21 +461,7 @@ export default function ShowcaseScroll() {
 
   return (
     <>
-    <PillNav
-      logo="/images/Plakzo_logo.jpeg"
-      logoAlt="PLAKZO"
-      baseColor="#ffffff"
-      pillColor="rgba(20, 20, 20, 0.85)"
-      hoveredPillTextColor="#000000"
-      items={[
-        { label: 'Home', href: '#', ariaLabel: 'Home' },
-        { label: 'Services', href: '#', ariaLabel: 'Services' },
-        { label: 'Materials', href: '#', ariaLabel: 'Materials' },
-        { label: 'Journey', href: '#', ariaLabel: 'Journey' },
-        { label: 'Gallery', href: '#', ariaLabel: 'Gallery' },
-        { label: 'Contact', href: '#', ariaLabel: 'Contact' }
-      ]}
-    />
+    <Navbar />
     <ScrollFrameSequence
       frameStart={FRAME_START}
       frameEnd={FRAME_END}
@@ -634,15 +641,10 @@ export default function ShowcaseScroll() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '180px', gap: '6px' }}>
-            {[
-              { label: 'Industrial Parts', tag: 'Industrial', size: 'large',  image: '/images/gallery_industrial_parts.png', accent: '#c3d9f3' },
-              { label: 'Photo Lamps',      tag: 'Gift',       size: 'medium', image: '/images/gallery_photo_lamp.png',      accent: '#f9c98e' },
-              { label: 'Keychains',        tag: 'Gift',       size: 'small',  image: '/images/gallery_keychains.png',       accent: '#a8edca' },
-              { label: 'CAD Design',       tag: 'CAD',        size: 'medium', image: '/images/gallery_cad_design.png',      accent: '#b9a0ef' },
-              { label: 'Bottle Caps',      tag: 'Industrial', size: 'small',  image: '/images/gallery_bottle_caps.png',     accent: '#e8a0cf' },
-              { label: 'Prototypes',       tag: 'Prototype',  size: 'medium', image: '/images/gallery_prototype.png',       accent: '#a0d8ef' },
-            ].map((item, i) => (
-              <div key={i} className="showcase-gallery-cell cursor-target" style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a', gridRow: item.size === 'large' ? 'span 2' : 'span 1', boxShadow: `0 0 0 1px ${item.accent}22` }}>
+            {GALLERY_ITEMS.map((item, i) => {
+              const size = i === 0 ? 'large' : (i % 2 === 0 ? 'small' : 'medium')
+              return (
+              <div key={item.slug} className="showcase-gallery-cell cursor-target" onClick={() => navigate(`/gallery/${item.slug}`)} style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a', gridRow: size === 'large' ? 'span 2' : 'span 1', boxShadow: `0 0 0 1px ${item.accent}22`, cursor: 'pointer' }}>
                 <img src={item.image} alt={item.label} loading="eager" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', transform: 'scale(1.02)', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }} className="showcase-gallery-img" />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.08) 100%)', zIndex: 1 }} />
                 <svg style={{ position: 'absolute', top: 0, left: 0, zIndex: 3, pointerEvents: 'none' }} width="20" height="20" viewBox="0 0 20 20"><line x1="0" y1="0" x2="12" y2="0" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /><line x1="0" y1="0" x2="0" y2="12" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /></svg>
@@ -654,7 +656,8 @@ export default function ShowcaseScroll() {
                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(11px, 1.2vw, 15px)', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fff' }}>{item.label}</span>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
@@ -662,40 +665,113 @@ export default function ShowcaseScroll() {
       {/* ═══════════════ CONTACT ═══════════════ */}
       <div ref={contactRef} style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 clamp(24px, 5vw, 80px)', opacity: 0, pointerEvents: 'none' }}>
         <div style={{ width: '100%', maxWidth: '1280px' }}>
-          <div style={{ marginBottom: '60px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-muted)', display: 'block', marginBottom: '16px' }}>Get In Touch</span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(24px, 3.5vw, 48px)', fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--color-ink)' }}>Contact Us</h2>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px' }}>
-            <div>
-              {[
-                { label: 'Email', value: 'plakzo.store@gmail.com', icon: '✉' },
-                { label: 'Instagram', value: '@plakzo', icon: '◈' },
-                { label: 'Location', value: 'Tamil Nadu, India', icon: '◎' },
-              ].map(info => (
-                <div key={info.label} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', paddingBottom: '24px', borderBottom: '1px solid var(--color-hairline)', marginBottom: '24px' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', color: 'var(--color-muted)', flexShrink: 0, width: '24px', textAlign: 'center', lineHeight: 1.4 }}>{info.icon}</span>
-                  <div>
-                    <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '9px', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '4px' }}>{info.label}</span>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: 'var(--color-ink)' }}>{info.value}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <input placeholder="Name" style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink)', background: 'var(--color-surface-card)', border: '1px solid var(--color-hairline)', padding: '14px 16px', outline: 'none', gridColumn: '1 / -1' }} />
-                <input placeholder="Email" style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink)', background: 'var(--color-surface-card)', border: '1px solid var(--color-hairline)', padding: '14px 16px', outline: 'none' }} />
-                <input placeholder="Phone" style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink)', background: 'var(--color-surface-card)', border: '1px solid var(--color-hairline)', padding: '14px 16px', outline: 'none' }} />
-                <textarea placeholder="Tell us about your project..." rows={4} style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink)', background: 'var(--color-surface-card)', border: '1px solid var(--color-hairline)', padding: '14px 16px', outline: 'none', resize: 'none', gridColumn: '1 / -1' }} />
-              </div>
-              <button className="btn-brand" style={{ alignSelf: 'flex-start' }}>Send Message</button>
-            </div>
-          </div>
+          <Contact isMobile={false} />
         </div>
       </div>
     </ScrollFrameSequence>
     </>
+  )
+}
+
+// ─── Mobile Navbar with Hamburger Menu ────────────────────────────
+function MobileNavbar({ scrollToSection }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  const navItems = [
+    { label: 'Home', href: '#home-mobile' },
+    { label: 'Services', href: '#services-mobile' },
+    { label: 'Materials', href: '#materials-mobile' },
+    { label: 'Journey', href: '#journey-mobile' },
+    { label: 'Gallery', href: '#gallery-mobile' },
+    { label: 'Contact', href: '#contact-mobile' }
+  ]
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleNavClick = (href) => {
+    setIsOpen(false)
+    scrollToSection(href.slice(1))
+  }
+
+  return (
+    <nav ref={menuRef} style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200 }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 16px', background: 'transparent',
+        backdropFilter: 'none', WebkitBackdropFilter: 'none',
+        borderBottom: isOpen ? 'none' : '1px solid var(--color-hairline)'
+      }}>
+        <img src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`} alt="PLAKZO" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+        
+        {/* Hamburger Icon */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={isOpen}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            padding: '8px', display: 'flex', flexDirection: 'column',
+            gap: '5px', zIndex: 300
+          }}
+        >
+          <span style={{
+            display: 'block', width: '22px', height: '2px',
+            background: '#ffffff', borderRadius: '1px',
+            transform: isOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
+            transition: 'transform 0.3s ease'
+          }} />
+          <span style={{
+            display: 'block', width: '22px', height: '2px',
+            background: '#ffffff', borderRadius: '1px',
+            opacity: isOpen ? 0 : 1,
+            transition: 'opacity 0.3s ease'
+          }} />
+          <span style={{
+            display: 'block', width: '22px', height: '2px',
+            background: '#ffffff', borderRadius: '1px',
+            transform: isOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none',
+            transition: 'transform 0.3s ease'
+          }} />
+        </button>
+      </div>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          background: 'rgba(0, 0, 0, 0.95)', backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)', borderBottom: '1px solid var(--color-hairline)',
+          padding: '8px 16px'
+        }}>
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              onClick={(e) => { e.preventDefault(); handleNavClick(item.href); }}
+              style={{
+                display: 'block', fontFamily: 'var(--font-mono)', fontSize: '11px',
+                fontWeight: 500, letterSpacing: '2px', textTransform: 'uppercase',
+                color: 'var(--color-ink)', textDecoration: 'none', padding: '14px 12px',
+                borderBottom: '1px solid var(--color-hairline)', transition: 'background 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </nav>
   )
 }
 
@@ -799,8 +875,12 @@ function ShowcaseMobile() {
   const [activeService, setActiveService] = useState(-1)
   const [activeChoose, setActiveChoose] = useState(-1)
   const [activeStep, setActiveStep] = useState(-1)
-  const [formStatus, setFormStatus] = useState('idle') // 'idle' | 'submitting' | 'success'
   const [activeSectionId, setActiveSectionId] = useState('home-mobile')
+
+  // Scroll to top on mount to ensure we start at home page
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   useEffect(() => {
     const sectionIds = [
@@ -837,18 +917,6 @@ function ShowcaseMobile() {
   const getActiveNavItem = (sectionId) => {
     if (sectionId === 'why-choose-mobile') return 'materials-mobile'
     return sectionId
-  }
-
-  const handleMobileSubmit = (e) => {
-    e.preventDefault()
-    setFormStatus('submitting')
-    setTimeout(() => {
-      setFormStatus('success')
-      e.target.reset()
-      setTimeout(() => {
-        setFormStatus('idle')
-      }, 4000)
-    }, 1500)
   }
 
   const containerRef = useRef(null)
@@ -1089,36 +1157,20 @@ function ShowcaseMobile() {
   return (
     <div ref={containerRef} style={{ background: '#000', color: 'var(--color-body)', minHeight: '100vh', overflowX: 'hidden', paddingBottom: '100px', position: 'relative' }}>
       
-      {/* Background Galaxy */}
+      {/* Plasma Background */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <Galaxy 
-          transparent={true}
-          starSpeed={0.3}
-          density={0.8}
-          hueShift={200}
-          glowIntensity={0.4}
-          saturation={0.2}
-          twinkleIntensity={0.3}
-          rotationSpeed={0.05}
-          mouseRepulsion={false}
+        <Plasma
+          color="#ffffff"
+          speed={0.4}
+          direction="pingpong"
+          scale={1.2}
+          opacity={0.35}
+          mouseInteractive={false}
         />
       </div>
 
-      {/* BubbleMenu Navigation */}
-      <BubbleMenu
-        useFixedPosition={true}
-        menuBg="rgba(20, 20, 20, 0.85)"
-        menuContentColor="#ffffff"
-        logo={<img src="/images/Plakzo_logo.jpeg" alt="PLAKZO" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />}
-        items={[
-          { label: 'Home', href: '#home-mobile', ariaLabel: 'Home', rotation: -8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } },
-          { label: 'Services', href: '#services-mobile', ariaLabel: 'Services', rotation: 8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } },
-          { label: 'Materials', href: '#materials-mobile', ariaLabel: 'Materials', rotation: 8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } },
-          { label: 'Journey', href: '#journey-mobile', ariaLabel: 'Journey', rotation: 8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } },
-          { label: 'Gallery', href: '#gallery-mobile', ariaLabel: 'Gallery', rotation: 8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } },
-          { label: 'Contact', href: '#contact-mobile', ariaLabel: 'Contact', rotation: -8, hoverStyles: { bgColor: '#ffffff', textColor: '#000000' } }
-        ]}
-      />
+      {/* Mobile Navbar */}
+      <MobileNavbar scrollToSection={scrollToSection} />
 
       {/* Global Scroll Progress Bar */}
       <div 
@@ -1190,7 +1242,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src="/images/gallery_cad_design.png" 
+                src={`${import.meta.env.BASE_URL}images/gallery_cad_design.png`} 
                 alt="3D CAD component design process in SolidWorks" 
                 width="160"
                 height="208"
@@ -1219,7 +1271,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src="/images/gallery_industrial_parts.png" 
+                src={`${import.meta.env.BASE_URL}images/gallery_industrial_parts.png`} 
                 alt="Finished 3D printed industrial plastic part" 
                 width="160"
                 height="100"
@@ -1248,7 +1300,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src="/images/gallery_photo_lamp.png" 
+                src={`${import.meta.env.BASE_URL}images/gallery_photo_lamp.png`} 
                 alt="Finished personalized 3D printed photo lamp" 
                 width="160"
                 height="100"
@@ -1647,20 +1699,15 @@ function ShowcaseMobile() {
         </div>
 
         <div className="gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-          {[
-            { label: 'Industrial Parts', tag: 'Industrial', image: '/images/gallery_industrial_parts.png' },
-            { label: 'Photo Lamps',      tag: 'Gift',       image: '/images/gallery_photo_lamp.png' },
-            { label: 'Keychains',        tag: 'Gift',       image: '/images/gallery_keychains.png' },
-            { label: 'CAD Design',       tag: 'CAD',        image: '/images/gallery_cad_design.png' },
-            { label: 'Bottle Caps',      tag: 'Industrial', image: '/images/gallery_bottle_caps.png' },
-            { label: 'Prototypes',       tag: 'Prototype',  image: '/images/gallery_prototype.png' },
-          ].map((item, i) => (
+          {GALLERY_ITEMS.map((item) => (
             <div 
-              key={i} 
+              key={item.slug} 
               className="gallery-card"
+              onClick={() => navigate(`/gallery/${item.slug}`)}
               style={{ 
                 position: 'relative', overflow: 'hidden', background: '#0a0a0a', 
-                height: '140px', border: '1px solid var(--color-hairline)', borderRadius: '0px' // Cards: 0px border-radius
+                height: '140px', border: '1px solid var(--color-hairline)', borderRadius: '0px',
+                cursor: 'pointer'
               }}
             >
               <img 
@@ -1722,160 +1769,7 @@ function ShowcaseMobile() {
           </h2>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {[
-              { label: 'Email', value: 'plakzo3dprinting@gmail.com', icon: '✉' },
-              { label: 'Instagram', value: '@plakzo', icon: '◈' },
-              { label: 'Location', value: 'Coimbatore, Tamil Nadu, India', icon: '◎' },
-            ].map(info => (
-              <div 
-                key={info.label} 
-                className="contact-fade-up"
-                style={{ 
-                  display: 'flex', gap: '14px', alignItems: 'center', 
-                  paddingBottom: '16px', borderBottom: '1px solid var(--color-hairline)' 
-                }}
-              >
-                <span aria-hidden="true" style={{ 
-                  fontFamily: 'var(--font-mono)', fontSize: '18px', color: '#ffffff', 
-                  width: '24px', textAlign: 'center' 
-                }}>
-                  {info.icon}
-                </span>
-                <div>
-                  <span style={{ 
-                    display: 'block', fontFamily: 'var(--font-mono)', fontSize: '8px', 
-                    letterSpacing: '1px', textTransform: 'uppercase', color: 'var(--color-muted)', marginBottom: '2px' 
-                  }}>
-                    {info.label}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-ink)' }}>
-                    {info.value}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {formStatus === 'success' ? (
-            <div 
-              className="contact-fade-up"
-              role="alert"
-              aria-live="polite"
-              style={{
-                padding: '40px 24px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid #ffffff',
-                borderRadius: '0px', // Cards: 0px border-radius
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '16px'
-              }}
-            >
-              <div aria-hidden="true" style={{
-                width: '40px', height: '40px',
-                borderRadius: '50%',
-                border: '1.5px solid #ffffff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#ffffff', fontSize: '20px', fontWeight: 'bold'
-              }}>
-                ✓
-              </div>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: '#ffffff', margin: 0 }}>
-                Message Sent
-              </h3>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '12.5px', color: 'var(--color-body)', margin: 0, lineHeight: 1.6 }}>
-                Thank you for reaching out. Our team will get back to you shortly…
-              </p>
-            </div>
-          ) : (
-            <form 
-              onSubmit={handleMobileSubmit}
-              className="contact-fade-up" 
-              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-            >
-              <div>
-                <label htmlFor="mobile-name" className="sr-only">Name</label>
-                <input 
-                  id="mobile-name"
-                  placeholder="Name (e.g. John Doe)…" 
-                  aria-label="Your Name"
-                  name="name"
-                  type="text"
-                  required
-                  inputMode="text"
-                  autoComplete="name"
-                  className="mobile-input"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="mobile-email" className="sr-only">Email Address</label>
-                <input 
-                  id="mobile-email"
-                  placeholder="Email (e.g. john@example.com)…" 
-                  aria-label="Email Address"
-                  name="email"
-                  type="email"
-                  required
-                  inputMode="email"
-                  autoComplete="email"
-                  spellCheck={false}
-                  className="mobile-input"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="mobile-phone" className="sr-only">Phone Number</label>
-                <input 
-                  id="mobile-phone"
-                  placeholder="Phone (e.g. +91 99999 99999)…" 
-                  aria-label="Phone Number"
-                  name="phone"
-                  type="tel"
-                  required
-                  inputMode="tel"
-                  autoComplete="tel"
-                  className="mobile-input"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="mobile-message" className="sr-only">Project details</label>
-                <textarea 
-                  id="mobile-message"
-                  placeholder="Tell us about your project (e.g. 50 units of gears)…" 
-                  aria-label="Project details"
-                  name="message"
-                  required
-                  autoComplete="off"
-                  rows={4} 
-                  className="mobile-input"
-                  style={{ resize: 'none' }}
-                />
-              </div>
-
-              <button 
-                type="submit"
-                disabled={formStatus === 'submitting'}
-                className="btn-brand" 
-                style={{ 
-                  width: '100%', 
-                  justifyContent: 'center', 
-                  height: '44px',
-                  opacity: formStatus === 'submitting' ? 0.6 : 1,
-                  cursor: formStatus === 'submitting' ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {formStatus === 'submitting' ? 'Sending…' : 'Send Message'}
-              </button>
-            </form>
-          )}
-        </div>
+        <Contact isMobile={true} />
       </section>
 
       <footer style={{ padding: '40px 20px 20px', textAlign: 'center', borderTop: '1px solid var(--color-hairline)' }}>

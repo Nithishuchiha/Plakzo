@@ -1,10 +1,9 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useCallback, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const FRAME_PATH = '/images/Entire_website_scrollable_animation/ezgif-frame-'
 const PAD = (n) => String(n).padStart(3, '0')
 
 /**
@@ -25,6 +24,7 @@ const PAD = (n) => String(n).padStart(3, '0')
 export default function ScrollFrameSequence({
   frameStart = 1,
   frameEnd = 40,
+  framePath = `${import.meta.env.BASE_URL}images/Entire_website_scrollable_animation/ezgif-frame-`,
   scrollTriggerId = 'frame-seq',
   scrollTrigger: stConfig = {},
   spacerHeight = '200vh',
@@ -49,7 +49,7 @@ export default function ScrollFrameSequence({
     for (let i = frameStart; i <= frameEnd; i++) {
       if (preloadCache.current.has(i)) continue
       const img = new Image()
-      img.src = `${FRAME_PATH}${PAD(i)}.png`
+      img.src = `${framePath}${PAD(i)}.png`
       preloadCache.current.add(i)
     }
   }, [frameStart, frameEnd])
@@ -61,7 +61,7 @@ export default function ScrollFrameSequence({
   const setFrame = useCallback((frame) => {
     if (!imgRef.current) return
     const clamped = Math.max(frameStart, Math.min(frameEnd, frame))
-    imgRef.current.src = `${FRAME_PATH}${PAD(clamped)}.png`
+    imgRef.current.src = `${framePath}${PAD(clamped)}.png`
     setCurrentFrame(clamped)
   }, [frameStart, frameEnd])
 
@@ -81,6 +81,18 @@ export default function ScrollFrameSequence({
     setFrame(frameOverride ?? frame)
     onFrameChange?.(frameOverride ?? frame)
   }, [progress, frameStart, totalFrames, setFrame, frameOverride, onFrameChange])
+
+  // Force first frame immediately — before any scroll event fires or browser paints.
+  // This prevents the glitch where a stale scroll position briefly renders the last frame.
+  useLayoutEffect(() => {
+    if (imgRef.current) {
+      imgRef.current.src = `${framePath}${PAD(frameStart)}.png`
+    }
+  }, [frameStart, framePath])
+
+  useEffect(() => {
+    tick()
+  }, [progress, frameOverride, tick])
 
   useEffect(() => {
     if (!wrapperRef.current) return
@@ -128,7 +140,7 @@ export default function ScrollFrameSequence({
         {/* Frame image */}
         <img
           ref={imgRef}
-          src={`${FRAME_PATH}${PAD(frameStart)}.png`}
+          src={`${framePath}${PAD(currentFrame)}.png`}
           alt=""
           aria-hidden="true"
           style={{

@@ -9,11 +9,12 @@ const PillNav = ({
   activeHref,
   className = '',
   ease = 'power3.easeOut',
-  baseColor = '#fff',
-  pillColor = '#120F17',
-  hoveredPillTextColor = '#120F17',
+  baseColor = '#ffffff',
+  pillColor = 'rgba(255, 255, 255, 0.08)',
+  hoveredPillTextColor = '#000000',
   pillTextColor,
   onMobileMenuClick,
+  onItemClick,
   initialLoadAnimation = true
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
@@ -27,6 +28,18 @@ const PillNav = ({
   const mobileMenuRef = useRef(null);
   const navItemsRef = useRef(null);
   const logoRef = useRef(null);
+
+  const isExternalLink = href => href && (href.startsWith('http') || href.startsWith('mailto:'));
+
+  const handleItemClick = (e, item) => {
+    if (item.href?.startsWith('#')) {
+      e.preventDefault();
+      onItemClick?.(item.href);
+      if (isMobileMenuOpen) {
+        toggleMobileMenu();
+      }
+    }
+  };
 
   useEffect(() => {
     const layout = () => {
@@ -204,16 +217,6 @@ const PillNav = ({
     onMobileMenuClick?.();
   };
 
-  const isExternalLink = href =>
-    href.startsWith('http://') ||
-    href.startsWith('https://') ||
-    href.startsWith('//') ||
-    href.startsWith('mailto:') ||
-    href.startsWith('tel:') ||
-    href.startsWith('#');
-
-  const isRouterLink = href => href && !isExternalLink(href);
-
   const cssVars = {
     ['--base']: baseColor,
     ['--pill-bg']: pillColor,
@@ -247,6 +250,7 @@ const PillNav = ({
                   aria-label={item.ariaLabel || item.label}
                   onMouseEnter={() => handleEnter(i)}
                   onMouseLeave={() => handleLeave(i)}
+                  onClick={(e) => handleItemClick(e, item)}
                 >
                   <span
                     className="hover-circle"
@@ -285,7 +289,7 @@ const PillNav = ({
               <a
                 href={item.href}
                 className={`mobile-menu-link${activeHref === item.href ? ' is-active' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => handleItemClick(e, item)}
               >
                 {item.label}
               </a>

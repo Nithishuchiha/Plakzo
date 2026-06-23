@@ -156,21 +156,24 @@ function MobileNav({ open, onClose }) {
 }
 
 /* ─── Desktop Nav ────────────────────────────────────────────────── */
-function DesktopNav({ navLinks, activeIdx }) {
+function DesktopNav({ navLinks, activeIdx, onLinkClick }) {
   return (
     <div className="desktop-nav">
-      <div className="desktop-nav-inner">
-        <span className="desktop-nav-wordmark">PLAKZO</span>
+      <div className="desktop-nav-inner" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 40px' }}>
+        <a href="#home" onClick={(e) => onLinkClick(e, 0)} style={{ position: 'absolute', left: '40px', display: 'flex', alignItems: 'center' }}>
+          <img
+            src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`}
+            alt="PLAKZO"
+            style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
+          />
+        </a>
         <ul className="desktop-nav-links">
           {navLinks.map((link, i) => (
             <li key={link.href}>
               <a
                 href={link.href}
                 className={`desktop-nav-link ${i === activeIdx ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  document.querySelector(link.href)?.scrollIntoView({ behavior: 'smooth' })
-                }}
+                onClick={(e) => onLinkClick(e, i)}
               >
                 {link.label}
               </a>
@@ -191,36 +194,46 @@ export default function Navbar() {
   const toggle = useCallback(() => setOpen(prev => !prev), [])
   const close = useCallback(() => setOpen(false), [])
 
-  // Track active section via IntersectionObserver
+  // Track active section via window scroll progress
   useEffect(() => {
-    const SECTION_IDS = NAV_LINKS.map(l => l.href.slice(1))
-    const indexMap = {}
-    SECTION_IDS.forEach((id, i) => { indexMap[id] = i })
+    const handleScroll = () => {
+      const h = 11 * window.innerHeight // total scroll range (1100vh)
+      const scrollY = window.scrollY
+      const progress = Math.min(Math.max(scrollY / h, 0), 1)
 
-    const visible = new Set()
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) visible.add(entry.target.id)
-          else visible.delete(entry.target.id)
-        })
-        let best = null
-        SECTION_IDS.forEach(id => {
-          if (visible.has(id) && best === null) best = id
-        })
-        if (best !== null) setActiveIdx(indexMap[best])
-      },
-      { rootMargin: '-10% 0px -60% 0px', threshold: 0 }
-    )
+      // Map progress to active index:
+      let idx = 0
+      if (progress >= 0.86) idx = 5 // Contact
+      else if (progress >= 0.68) idx = 4 // Gallery
+      else if (progress >= 0.33) idx = 3 // Journey
+      else if (progress >= 0.22) idx = 2 // Materials
+      else if (progress >= 0.11) idx = 1 // Services
+      else idx = 0 // Home
 
-    const IO_SKIP = new Set(['home', 'services'])
-    SECTION_IDS.forEach(id => {
-      if (IO_SKIP.has(id)) return
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
+      setActiveIdx(idx)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Handle desktop nav click by scrolling to the exact progress target of the section
+  const handleDesktopNavClick = useCallback((e, index) => {
+    e.preventDefault()
+    const targetProgress = [
+      0,      // Home
+      0.18,   // Services
+      0.30,   // Materials
+      0.58,   // Journey
+      0.78,   // Gallery
+      0.95,   // Contact
+    ]
+    const h = 11 * window.innerHeight
+    window.scrollTo({
+      top: targetProgress[index] * h,
+      behavior: 'smooth'
     })
-
-    return () => observer.disconnect()
   }, [])
 
   // Close on Escape
@@ -234,7 +247,13 @@ export default function Navbar() {
     <nav ref={navRef} id="navbar" className="navbar">
       {/* Top bar — always visible */}
       <div className="navbar-topbar">
-        <span className="navbar-wordmark">PLAKZO</span>
+        <a href="#home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="navbar-logo-link" style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`}
+            alt="PLAKZO"
+            style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
+          />
+        </a>
 
         {/* Hamburger — mobile only via CSS */}
         <button
@@ -248,7 +267,7 @@ export default function Navbar() {
       </div>
 
       {/* Desktop nav */}
-      <DesktopNav navLinks={NAV_LINKS} activeIdx={activeIdx} />
+      <DesktopNav navLinks={NAV_LINKS} activeIdx={activeIdx} onLinkClick={handleDesktopNavClick} />
 
       {/* Mobile gooey overlay */}
       <MobileNav open={open} onClose={close} />
