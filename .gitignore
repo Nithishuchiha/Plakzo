@@ -32,3 +32,6 @@ pnpm-debug.log*
 *.zip
 public/images/*.zip
 
+# images (now on Cloudinary)
+public/images/
+
