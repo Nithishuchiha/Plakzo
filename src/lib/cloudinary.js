@@ -1,5 +1,5 @@
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-const FOLDER = import.meta.env.VITE_CLOUDINARY_FOLDER
+const CLOUD_NAME = 'dafi2yzol'
+const FOLDER = 'plakzo'
 
 export const CLOUDINARY_BASE = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload`
 export const CLOUDINARY_FOLDER = FOLDER
