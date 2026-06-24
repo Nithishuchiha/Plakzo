@@ -13,6 +13,7 @@ import Galaxy from './Galaxy'
 import Plasma from './Plasma'
 import PillNav from './PillNav'
 import Contact from './Contact'
+import { cloudinaryUrl } from '../lib/cloudinary'
 import { GALLERY_ITEMS } from '../data/galleryItems'
 
 gsap.registerPlugin(ScrambleTextPlugin, SplitText, ScrollTrigger)
@@ -645,7 +646,7 @@ export default function ShowcaseScroll() {
               const size = i === 0 ? 'large' : (i % 2 === 0 ? 'small' : 'medium')
               return (
               <div key={item.slug} className="showcase-gallery-cell cursor-target" onClick={() => navigate(`/gallery/${item.slug}`)} style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a', gridRow: size === 'large' ? 'span 2' : 'span 1', boxShadow: `0 0 0 1px ${item.accent}22`, cursor: 'pointer' }}>
-                <img src={item.image} alt={item.label} loading="eager" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', transform: 'scale(1.02)', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }} className="showcase-gallery-img" />
+                <img src={item.image} alt={item.label} loading="lazy" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', transform: 'scale(1.02)', transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1)' }} className="showcase-gallery-img" />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.08) 100%)', zIndex: 1 }} />
                 <svg style={{ position: 'absolute', top: 0, left: 0, zIndex: 3, pointerEvents: 'none' }} width="20" height="20" viewBox="0 0 20 20"><line x1="0" y1="0" x2="12" y2="0" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /><line x1="0" y1="0" x2="0" y2="12" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /></svg>
                 <svg style={{ position: 'absolute', bottom: 0, right: 0, zIndex: 3, pointerEvents: 'none' }} width="20" height="20" viewBox="0 0 20 20"><line x1="20" y1="20" x2="8" y2="20" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /><line x1="20" y1="20" x2="20" y2="8" stroke={item.accent} strokeWidth="1.5" opacity="0.6" /></svg>
@@ -710,7 +711,7 @@ function MobileNavbar({ scrollToSection }) {
         backdropFilter: 'none', WebkitBackdropFilter: 'none',
         borderBottom: isOpen ? 'none' : '1px solid var(--color-hairline)'
       }}>
-        <img src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`} alt="PLAKZO" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
+        <img src={cloudinaryUrl('logos/plakzo_logo_new.jpeg')} alt="PLAKZO" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
         
         {/* Hamburger Icon */}
         <button
@@ -1242,7 +1243,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src={`${import.meta.env.BASE_URL}images/gallery_cad_design.png`} 
+                src={cloudinaryUrl('thumbnails/gallery_cad_design.png')} 
                 alt="3D CAD component design process in SolidWorks" 
                 width="160"
                 height="208"
@@ -1271,7 +1272,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src={`${import.meta.env.BASE_URL}images/gallery_industrial_parts.png`} 
+                src={cloudinaryUrl('thumbnails/gallery_industrial_parts.png')} 
                 alt="Finished 3D printed industrial plastic part" 
                 width="160"
                 height="100"
@@ -1300,7 +1301,7 @@ function ShowcaseMobile() {
               borderRadius: '0px' 
             }}>
               <img 
-                src={`${import.meta.env.BASE_URL}images/gallery_photo_lamp.png`} 
+                src={cloudinaryUrl('thumbnails/gallery_photo_lamp.png')} 
                 alt="Finished personalized 3D printed photo lamp" 
                 width="160"
                 height="100"

@@ -1,10 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useCallback, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { CLOUDINARY_BASE, CLOUDINARY_FOLDER } from '../lib/cloudinary'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const PAD = (n) => String(n).padStart(3, '0')
+
+function buildFrameUrl(framePath, frameNum) {
+  return `${CLOUDINARY_BASE}/f_auto,q_auto/${CLOUDINARY_FOLDER}/${framePath}${PAD(frameNum)}.png`
+}
 
 /**
  * ScrollFrameSequence — Reusable scroll-linked frame animation.
@@ -24,7 +29,7 @@ const PAD = (n) => String(n).padStart(3, '0')
 export default function ScrollFrameSequence({
   frameStart = 1,
   frameEnd = 40,
-  framePath = `${import.meta.env.BASE_URL}images/Entire_website_scrollable_animation/ezgif-frame-`,
+  framePath = 'main-scroll/ezgif-frame-',
   scrollTriggerId = 'frame-seq',
   scrollTrigger: stConfig = {},
   spacerHeight = '200vh',
@@ -49,10 +54,10 @@ export default function ScrollFrameSequence({
     for (let i = frameStart; i <= frameEnd; i++) {
       if (preloadCache.current.has(i)) continue
       const img = new Image()
-      img.src = `${framePath}${PAD(i)}.png`
+      img.src = buildFrameUrl(framePath, i)
       preloadCache.current.add(i)
     }
-  }, [frameStart, frameEnd])
+  }, [frameStart, frameEnd, framePath])
 
   const unloadFrames = useCallback(() => {
     preloadCache.current.clear()
@@ -61,9 +66,9 @@ export default function ScrollFrameSequence({
   const setFrame = useCallback((frame) => {
     if (!imgRef.current) return
     const clamped = Math.max(frameStart, Math.min(frameEnd, frame))
-    imgRef.current.src = `${framePath}${PAD(clamped)}.png`
+    imgRef.current.src = buildFrameUrl(framePath, clamped)
     setCurrentFrame(clamped)
-  }, [frameStart, frameEnd])
+  }, [frameStart, frameEnd, framePath])
 
   // Throttled scroll handler
   const onScroll = useCallback(() => {
@@ -86,7 +91,7 @@ export default function ScrollFrameSequence({
   // This prevents the glitch where a stale scroll position briefly renders the last frame.
   useLayoutEffect(() => {
     if (imgRef.current) {
-      imgRef.current.src = `${framePath}${PAD(frameStart)}.png`
+      imgRef.current.src = buildFrameUrl(framePath, frameStart)
     }
   }, [frameStart, framePath])
 
@@ -140,7 +145,7 @@ export default function ScrollFrameSequence({
         {/* Frame image */}
         <img
           ref={imgRef}
-          src={`${framePath}${PAD(currentFrame)}.png`}
+          src={buildFrameUrl(framePath, currentFrame)}
           alt=""
           aria-hidden="true"
           style={{

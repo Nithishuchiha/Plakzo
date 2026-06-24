@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { CLOUDINARY_BASE, CLOUDINARY_FOLDER } from '../lib/cloudinary'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const FRAME_START = 181
 const FRAME_END = 185
-const FRAME_PATH = '/images/Entire_website_scrollable_animation/ezgif-frame-'
+const FRAME_PATH = `${CLOUDINARY_BASE}/f_auto,q_auto/${CLOUDINARY_FOLDER}/main-scroll/ezgif-frame-`
 const PAD = (n) => String(n).padStart(3, '0')
 
 /* ─── Icons per step ─── */

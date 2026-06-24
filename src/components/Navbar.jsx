@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
+import { cloudinaryUrl } from '../lib/cloudinary'
 
 /* ─── Nav items ──────────────────────────────────────────────────── */
 const NAV_LINKS = [
@@ -162,7 +163,7 @@ function DesktopNav({ navLinks, activeIdx, onLinkClick }) {
       <div className="desktop-nav-inner" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 40px' }}>
         <a href="#home" onClick={(e) => onLinkClick(e, 0)} style={{ position: 'absolute', left: '40px', display: 'flex', alignItems: 'center' }}>
           <img
-            src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`}
+            src={cloudinaryUrl('logos/plakzo_logo_new.jpeg')}
             alt="PLAKZO"
             style={{ height: '56px', width: 'auto', objectFit: 'contain' }}
           />
@@ -249,7 +250,7 @@ export default function Navbar() {
       <div className="navbar-topbar">
         <a href="#home" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="navbar-logo-link" style={{ display: 'flex', alignItems: 'center' }}>
           <img
-            src={`${import.meta.env.BASE_URL}images/plakzo_logo_new.jpeg`}
+            src={cloudinaryUrl('logos/plakzo_logo_new.jpeg')}
             alt="PLAKZO"
             style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
           />
