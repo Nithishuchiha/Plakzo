@@ -1,7 +1,8 @@
-import { useLayoutEffect } from 'react'
+import { useLayoutEffect, useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getGalleryItem } from '../data/galleryItems'
 import ScrollFrameSequence from '../components/ScrollFrameSequence'
+import GalleryPreloader from '../lib/galleryPreloader'
 
 const fadeIn = (p, start, end) => {
   if (p < start) return 0
@@ -143,16 +144,80 @@ function NotFound() {
 export default function GalleryPage() {
   const { slug } = useParams()
   const item = getGalleryItem(slug)
+  const [isLoading, setIsLoading] = useState(true)
 
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [slug])
+
+  // Check if gallery is preloaded, if not start loading
+  useEffect(() => {
+    if (!item) return
+
+    // Check if already preloaded from homepage
+    if (GalleryPreloader.isGalleryReady(slug)) {
+      setIsLoading(false)
+      return
+    }
+
+    // Start preloading this gallery
+    GalleryPreloader.preloadGallery(slug)
+
+    // Poll until ready
+    const interval = setInterval(() => {
+      if (GalleryPreloader.isGalleryReady(slug)) {
+        setIsLoading(false)
+        clearInterval(interval)
+      }
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [slug, item])
 
   if (!item) return <NotFound />
 
   const itemData = ITEM_DATA[item.slug] || ITEM_DATA['industrial-parts']
 
   return (
+    <>
+    {/* Full-page loading spinner */}
+    {isLoading && (
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#0a0a0a',
+        transition: 'opacity 0.4s ease',
+      }}>
+        <div style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(24px, 4vw, 48px)',
+          fontWeight: 700,
+          letterSpacing: '8px',
+          textTransform: 'uppercase',
+          color: '#fff',
+          marginBottom: '32px',
+        }}>
+          PLAKZO
+        </div>
+        {/* Spinner */}
+        <div style={{
+          width: '32px',
+          height: '32px',
+          border: '2px solid rgba(255,255,255,0.1)',
+          borderTopColor: '#b9a0ef',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    )}
+
+    <div style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 0.4s ease' }}>
     <ScrollFrameSequence
       framePath={item.frameDir}
       frameEnd={item.frameCount}
@@ -293,5 +358,7 @@ export default function GalleryPage() {
         )
       }}
     </ScrollFrameSequence>
+    </div>
+    </>
   )
 }

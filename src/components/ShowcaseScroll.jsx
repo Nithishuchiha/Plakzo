@@ -5,6 +5,7 @@ import { ScrambleTextPlugin } from 'gsap/dist/ScrambleTextPlugin'
 import { SplitText } from 'gsap/dist/SplitText'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import ScrollFrameSequence from './ScrollFrameSequence'
+import LoadingScreen from './LoadingScreen'
 import ChromaGrid from './ChromaGrid'
 import TargetCursor from './TargetCursor'
 import Waves from './Waves'
@@ -15,6 +16,7 @@ import PillNav from './PillNav'
 import Contact from './Contact'
 import { cloudinaryUrl } from '../lib/cloudinary'
 import { GALLERY_ITEMS } from '../data/galleryItems'
+import GalleryPreloader from '../lib/galleryPreloader'
 
 gsap.registerPlugin(ScrambleTextPlugin, SplitText, ScrollTrigger)
 
@@ -22,6 +24,7 @@ gsap.registerPlugin(ScrambleTextPlugin, SplitText, ScrollTrigger)
 const FRAME_START = 1
 const FRAME_END   = 191
 const SPACER_HEIGHT = '1100vh'    // extra scroll room for the gamification pin
+const INITIAL_LOAD_COUNT = 40     // frames to load before showing website
 
 // Progress thresholds (0–1 over the full scroll height)
 const HERO_HOLD_END       = 0.08
@@ -280,6 +283,63 @@ export default function ShowcaseScroll() {
   // Mobile detection state
   const [isMobile, setIsMobile] = useState(false)
 
+  // Loading screen state
+  const [isLoading, setIsLoading] = useState(true)
+  const mainFrameProgress = useRef(0)
+  const [displayProgress, setDisplayProgress] = useState(0)
+
+  // Preload first 40 frames, then preload remaining in background
+  const preloadFrames = useCallback((start, end, target, onProgress) => {
+    const loaded = new Set()
+    const effectiveTarget = Math.min(target, end - start + 1)
+
+    for (let i = start; i < start + effectiveTarget; i++) {
+      const img = new Image()
+      img.onload = () => {
+        loaded.add(i)
+        const pct = (loaded.size / effectiveTarget) * 100
+        onProgress(pct)
+        // After target reached, preload remaining frames
+        if (loaded.size >= effectiveTarget) {
+          for (let j = start + effectiveTarget; j <= end; j++) {
+            const remainingImg = new Image()
+            remainingImg.src = `${import.meta.env.BASE_URL}images/Entire_website_scrollable_animation/ezgif-frame-${String(j).padStart(3, '0')}.png`
+          }
+        }
+      }
+      img.src = `${import.meta.env.BASE_URL}images/Entire_website_scrollable_animation/ezgif-frame-${String(i).padStart(3, '0')}.png`
+    }
+  }, [])
+
+  // Start loading on mount
+  useEffect(() => {
+    if (isMobile) return
+
+    // Build Cloudinary URLs for main scroll frames
+    const buildUrl = (num) => `https://res.cloudinary.com/dafi2yzol/image/upload/f_auto,q_auto/plakzo/main-scroll/ezgif-frame-${String(num).padStart(3, '0')}.png`
+
+    const loaded = new Set()
+    const target = INITIAL_LOAD_COUNT
+    const totalFrames = FRAME_END - FRAME_START + 1
+    const effectiveTarget = Math.min(target, totalFrames)
+
+    for (let i = FRAME_START; i < FRAME_START + effectiveTarget; i++) {
+      const img = new Image()
+      img.onload = () => {
+        loaded.add(i)
+        const pct = (loaded.size / effectiveTarget) * 100
+        mainFrameProgress.current = pct
+        setDisplayProgress(pct)
+
+        if (loaded.size >= effectiveTarget) {
+          // Target reached — start gallery preloading in background
+          GalleryPreloader.preloadAll()
+        }
+      }
+      img.src = buildUrl(i)
+    }
+  }, [isMobile])
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -462,6 +522,8 @@ export default function ShowcaseScroll() {
 
   return (
     <>
+    <LoadingScreen progress={displayProgress} onComplete={() => setIsLoading(false)} />
+    <div style={{ opacity: isLoading ? 0 : 1, transition: 'opacity 0.4s ease' }}>
     <Navbar />
     <ScrollFrameSequence
       frameStart={FRAME_START}
@@ -670,6 +732,7 @@ export default function ShowcaseScroll() {
         </div>
       </div>
     </ScrollFrameSequence>
+    </div>
     </>
   )
 }
