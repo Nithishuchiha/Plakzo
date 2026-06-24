@@ -24,7 +24,7 @@ gsap.registerPlugin(ScrambleTextPlugin, SplitText, ScrollTrigger)
 const FRAME_START = 1
 const FRAME_END   = 191
 const SPACER_HEIGHT = '1100vh'    // extra scroll room for the gamification pin
-const INITIAL_LOAD_COUNT = 40     // frames to load before showing website
+const INITIAL_LOAD_COUNT = 134    // 70% of 191 frames — show loading until this many load
 
 // Progress thresholds (0–1 over the full scroll height)
 const HERO_HOLD_END       = 0.08
