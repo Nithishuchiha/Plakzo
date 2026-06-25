@@ -14,6 +14,7 @@ import Galaxy from './Galaxy'
 import Plasma from './Plasma'
 import PillNav from './PillNav'
 import Contact from './Contact'
+import ShowcaseTablet from './ShowcaseTablet'
 import { cloudinaryUrl } from '../lib/cloudinary'
 import { GALLERY_ITEMS } from '../data/galleryItems'
 import GalleryPreloader from '../lib/galleryPreloader'
@@ -282,6 +283,7 @@ export default function ShowcaseScroll() {
 
   // Mobile detection state
   const [isMobile, setIsMobile] = useState(false)
+  const [isTablet, setIsTablet] = useState(false)
 
   // Loading screen state
   const [isLoading, setIsLoading] = useState(true)
@@ -341,12 +343,14 @@ export default function ShowcaseScroll() {
   }, [isMobile])
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+    const checkMode = () => {
+      const w = window.innerWidth
+      setIsMobile(w < 768)
+      setIsTablet(w >= 768 && w < 1200)
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    checkMode()
+    window.addEventListener('resize', checkMode)
+    return () => window.removeEventListener('resize', checkMode)
   }, [])
 
   // Scroll to specific section if query param present
@@ -518,6 +522,10 @@ export default function ShowcaseScroll() {
 
   if (isMobile) {
     return <ShowcaseMobile />
+  }
+
+  if (isTablet) {
+    return <ShowcaseTablet />
   }
 
   return (

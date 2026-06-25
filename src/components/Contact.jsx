@@ -20,13 +20,6 @@ const SERVICE_OPTIONS = [
   { value: 'other', label: 'Other Custom Request' },
 ];
 
-const MATERIAL_OPTIONS = [
-  { value: 'PLA', label: 'PLA (Eco-Friendly / Decorative)' },
-  { value: 'ABS', label: 'ABS (Durable / Functional)' },
-  { value: 'TPU', label: 'TPU (Flexible / Rubber-like)' },
-  { value: 'not-sure', label: 'Not Sure (Help Me Choose)' },
-];
-
 // Coimbatore Coordinates Visual
 const CoimbatoreCoordinatesVisual = () => {
   return (
@@ -301,7 +294,6 @@ export default function Contact({ isMobile = false }) {
     email: '',
     phone: '',
     service: '',
-    material: '',
     message: '',
   });
   const [errors, setErrors] = useState({});
@@ -322,7 +314,6 @@ export default function Contact({ isMobile = false }) {
       tempErrors.phone = 'Phone number must be between 10-15 digits';
     }
     if (!formValues.service) tempErrors.service = 'Please select a service interest';
-    if (!formValues.material) tempErrors.material = 'Please select a material preference';
     if (!formValues.message.trim()) tempErrors.message = 'Project details are required';
 
     setErrors(tempErrors);
@@ -346,7 +337,6 @@ export default function Contact({ isMobile = false }) {
       email: '',
       phone: '',
       service: '',
-      material: '',
       message: '',
     });
     setErrors({});
@@ -481,12 +471,7 @@ export default function Contact({ isMobile = false }) {
                     {SERVICE_OPTIONS.find(s => s.value === formValues.service)?.label.split(' (')[0] || 'Not Specified'}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: '10px' }}>
-                  <span style={{ color: 'var(--color-muted)' }}>MATERIAL PREFERENCE</span>
-                  <span style={{ color: '#fff', textAlign: 'right', textTransform: 'uppercase' }}>
-                    {MATERIAL_OPTIONS.find(m => m.value === formValues.material)?.label.split(' (')[0] || 'Not Specified'}
-                  </span>
-                </div>
+
               </div>
 
               <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-body)', margin: 0, lineHeight: 1.6 }}>
@@ -550,15 +535,6 @@ export default function Contact({ isMobile = false }) {
                 disabled={formStatus === 'submitting'}
               />
 
-              <SelectField 
-                label="Material Selection"
-                options={MATERIAL_OPTIONS}
-                value={formValues.material}
-                onChange={val => setFormValues(p => ({ ...p, material: val }))}
-                error={errors.material}
-                disabled={formStatus === 'submitting'}
-              />
-
               {/* Message Details */}
               <div style={{ position: 'relative', marginTop: '12px', marginBottom: '24px' }}>
                 <label 
@@ -583,7 +559,7 @@ export default function Contact({ isMobile = false }) {
                   value={formValues.message}
                   onChange={e => setFormValues(p => ({ ...p, message: e.target.value }))}
                   disabled={formStatus === 'submitting'}
-                  rows={4}
+                  rows={2}
                   style={{
                     width: '100%',
                     backgroundColor: 'transparent',
