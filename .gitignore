@@ -28,6 +28,9 @@ pnpm-debug.log*
 .opencode/
 .agents/skills-lock.json
 
+# scripts (may contain secrets)
+scripts/
+
 # zip archives
 *.zip
 public/images/*.zip
