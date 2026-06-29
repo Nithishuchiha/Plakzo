@@ -1,0 +1,12 @@
+D:\Github_projects\Plakzo\.agents\skills\gsap-core\SKILL.md
+D:\Github_projects\Plakzo\.agents\skills\gsap-scrolltrigger\SKILL.md
+D:\Github_projects\Plakzo\.agents\skills\gsap-timeline\SKILL.md
+D:\Github_projects\Plakzo\.agents\skills\mobile-app-ui-design\INDEX.md
+D:\Github_projects\Plakzo\.agents\skills\mobile-app-ui-design\README.md
+D:\Github_projects\Plakzo\.agents\skills\mobile-app-ui-design\SKILL.md
+D:\Github_projects\Plakzo\.agents\skills\mobile-app-ui-design\references\industry-conventions.md
+D:\Github_projects\Plakzo\.github\workflows\deploy.yml
+D:\Github_projects\Plakzo\AGENTS.md
+D:\Github_projects\Plakzo\DESIGN.md
+D:\Github_projects\Plakzo\details.md
+D:\Github_projects\Plakzo\index.html

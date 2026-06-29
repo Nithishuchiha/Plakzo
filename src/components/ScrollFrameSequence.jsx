@@ -7,8 +7,12 @@ gsap.registerPlugin(ScrollTrigger)
 
 const PAD = (n) => String(n).padStart(3, '0')
 
-function buildFrameUrl(framePath, frameNum) {
-  return `${CLOUDINARY_BASE}/f_auto,q_auto/${CLOUDINARY_FOLDER}/${framePath}${PAD(frameNum)}.png`
+function buildFrameUrl(framePath, frameNum, isLocal = false, localBase = '') {
+  const pad = String(frameNum).padStart(3, '0')
+  if (isLocal) {
+    return `/${localBase}ezgif-frame-${pad}.png`
+  }
+  return `${CLOUDINARY_BASE}/f_auto,q_auto/${CLOUDINARY_FOLDER}/${framePath}${pad}.png`
 }
 
 /**
@@ -25,6 +29,8 @@ function buildFrameUrl(framePath, frameNum) {
  *   onFrameChange   {fn}      Callback with current frame number on each frame swap
  *   className       {string}  Optional wrapper class
  *   style           {object}  Optional wrapper style overrides
+ *   localFrames     {boolean} If true, load frames from local src path instead of Cloudinary
+ *   localFramesBase {string}  Base path for local frames (e.g., 'product2_lamp_frames/')
  */
 export default function ScrollFrameSequence({
   frameStart = 1,
@@ -39,6 +45,8 @@ export default function ScrollFrameSequence({
   frameOverride = null,
   className,
   style,
+  localFrames = false,
+  localFramesBase = '',
 }) {
   const wrapperRef  = useRef(null)
   const imgRef      = useRef(null)
@@ -54,10 +62,10 @@ export default function ScrollFrameSequence({
     for (let i = frameStart; i <= frameEnd; i++) {
       if (preloadCache.current.has(i)) continue
       const img = new Image()
-      img.src = buildFrameUrl(framePath, i)
+      img.src = buildFrameUrl(framePath, i, localFrames, localFramesBase)
       preloadCache.current.add(i)
     }
-  }, [frameStart, frameEnd, framePath])
+  }, [frameStart, frameEnd, framePath, localFrames, localFramesBase])
 
   const unloadFrames = useCallback(() => {
     preloadCache.current.clear()
@@ -66,9 +74,9 @@ export default function ScrollFrameSequence({
   const setFrame = useCallback((frame) => {
     if (!imgRef.current) return
     const clamped = Math.max(frameStart, Math.min(frameEnd, frame))
-    imgRef.current.src = buildFrameUrl(framePath, clamped)
+    imgRef.current.src = buildFrameUrl(framePath, clamped, localFrames, localFramesBase)
     setCurrentFrame(clamped)
-  }, [frameStart, frameEnd, framePath])
+  }, [frameStart, frameEnd, framePath, localFrames, localFramesBase])
 
   // Throttled scroll handler
   const onScroll = useCallback(() => {
@@ -91,9 +99,9 @@ export default function ScrollFrameSequence({
   // This prevents the glitch where a stale scroll position briefly renders the last frame.
   useLayoutEffect(() => {
     if (imgRef.current) {
-      imgRef.current.src = buildFrameUrl(framePath, frameStart)
+      imgRef.current.src = buildFrameUrl(framePath, frameStart, localFrames, localFramesBase)
     }
-  }, [frameStart, framePath])
+  }, [frameStart, framePath, localFrames, localFramesBase])
 
   useEffect(() => {
     tick()
@@ -145,7 +153,7 @@ export default function ScrollFrameSequence({
         {/* Frame image */}
         <img
           ref={imgRef}
-          src={buildFrameUrl(framePath, currentFrame)}
+          src={buildFrameUrl(framePath, currentFrame, localFrames, localFramesBase)}
           alt=""
           aria-hidden="true"
           style={{

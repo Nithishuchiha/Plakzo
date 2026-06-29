@@ -198,6 +198,29 @@ export default function Navbar() {
   // Track active section via window scroll progress
   useEffect(() => {
     const handleScroll = () => {
+      const isTablet = window.innerWidth >= 768 && window.innerWidth < 1200
+      if (isTablet) {
+        const tabletSectionIds = [
+          'home-tablet',
+          'tablet-services',
+          'tablet-materials',
+          'tablet-journey',
+          'tablet-gallery',
+          'tablet-contact'
+        ]
+        let currentIdx = 0
+        const scrollPosition = window.scrollY + window.innerHeight / 3
+
+        for (let i = 0; i < tabletSectionIds.length; i++) {
+          const el = document.getElementById(tabletSectionIds[i])
+          if (el && scrollPosition >= el.offsetTop) {
+            currentIdx = i
+          }
+        }
+        setActiveIdx(currentIdx)
+        return
+      }
+
       const h = 11 * window.innerHeight // total scroll range (1100vh)
       const scrollY = window.scrollY
       const progress = Math.min(Math.max(scrollY / h, 0), 1)
@@ -222,6 +245,24 @@ export default function Navbar() {
   // Handle desktop nav click by scrolling to the exact progress target of the section
   const handleDesktopNavClick = useCallback((e, index) => {
     e.preventDefault()
+
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1200
+    if (isTablet) {
+      const tabletSectionIds = [
+        'home-tablet',
+        'tablet-services',
+        'tablet-materials',
+        'tablet-journey',
+        'tablet-gallery',
+        'tablet-contact'
+      ]
+      const el = document.getElementById(tabletSectionIds[index])
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+      return
+    }
+
     const targetProgress = [
       0,      // Home
       0.18,   // Services

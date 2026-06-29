@@ -285,6 +285,14 @@ export default function ShowcaseScroll() {
   const [isMobile, setIsMobile] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
 
+  const handleScrollToProgress = useCallback((targetProgress) => {
+    const h = 11 * window.innerHeight
+    window.scrollTo({
+      top: targetProgress * h,
+      behavior: 'smooth'
+    })
+  }, [])
+
   // Loading screen state
   const [isLoading, setIsLoading] = useState(true)
   const mainFrameProgress = useRef(0)
@@ -558,8 +566,20 @@ export default function ShowcaseScroll() {
             We design custom plastic components using SolidWorks and manufacture them with precision 3D printing — from concept to your doorstep.
           </p>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <a href="#contact" className="btn-brand">Get a Quote</a>
-            <button className="btn-ghost" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Our Services →</button>
+            <a 
+              href="#contact" 
+              onClick={(e) => { e.preventDefault(); handleScrollToProgress(0.95); }} 
+              className="btn-brand"
+            >
+              Get a Quote
+            </a>
+            <button 
+              className="btn-ghost" 
+              onClick={() => handleScrollToProgress(0.18)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Our Services →
+            </button>
           </div>
         </div>
       </div>
@@ -712,7 +732,7 @@ export default function ShowcaseScroll() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '180px', gap: '6px' }}>
-            {GALLERY_ITEMS.map((item, i) => {
+            {GALLERY_ITEMS.filter(item => !item.isSubProduct).map((item, i) => {
               const size = i === 0 ? 'large' : (i % 2 === 0 ? 'small' : 'medium')
               return (
               <div key={item.slug} className="showcase-gallery-cell cursor-target" onClick={() => navigate(`/gallery/${item.slug}`)} style={{ position: 'relative', overflow: 'hidden', background: '#0a0a0a', gridRow: size === 'large' ? 'span 2' : 'span 1', boxShadow: `0 0 0 1px ${item.accent}22`, cursor: 'pointer' }}>
@@ -1771,7 +1791,7 @@ function ShowcaseMobile() {
         </div>
 
         <div className="gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-          {GALLERY_ITEMS.map((item) => (
+          {GALLERY_ITEMS.filter(item => !item.isSubProduct).map((item) => (
             <div 
               key={item.slug} 
               className="gallery-card"

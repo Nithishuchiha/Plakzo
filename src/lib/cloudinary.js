@@ -1,5 +1,5 @@
-const CLOUD_NAME = 'dafi2yzol'
-const FOLDER = 'plakzo'
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dafi2yzol'
+const FOLDER = import.meta.env.VITE_CLOUDINARY_FOLDER || 'plakzo'
 
 export const CLOUDINARY_BASE = `https://res.cloudinary.com/${CLOUD_NAME}/image/upload`
 export const CLOUDINARY_FOLDER = FOLDER
@@ -10,5 +10,5 @@ export function cloudinaryUrl(publicId, transforms = 'f_auto,q_auto') {
 
 export function cloudinaryFrameUrl(frameDir, frameNum) {
   const pad = String(frameNum).padStart(3, '0')
-  return `${CLOUDINARY_BASE}/f_auto,q_auto/${FOLDER}/${frameDir}/${pad}.png`
+  return `${CLOUDINARY_BASE}/f_auto,q_auto/${FOLDER}/${frameDir}${pad}.png`
 }

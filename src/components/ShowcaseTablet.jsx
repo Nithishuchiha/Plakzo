@@ -804,7 +804,7 @@ export default function ShowcaseTablet() {
           </div>
 
           <div id="tablet-gallery-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridAutoRows: '180px', gap: '8px' }}>
-            {GALLERY_ITEMS.map((item, i) => {
+            {GALLERY_ITEMS.filter(item => !item.isSubProduct).map((item, i) => {
               const size = i === 0 ? 'large' : (i % 2 === 0 ? 'small' : 'medium')
               return (
                 <div
