@@ -34,11 +34,13 @@ export default function TargetCursor({
   hoverDuration = 0.2,
   parallaxOn = true,
   containerRef = null,   // when provided, scope cursor: none and listeners to this element
+  hoverLabel = null,     // text to show when hovering over a target (e.g. "Click to view")
 }) {
   const cursorRef = useRef(null)
   const cornersRef = useRef(null)
   const spinTl = useRef(null)
   const dotRef = useRef(null)
+  const labelRef = useRef(null)
   const containingBlockRef = useRef(null)
   const isActiveRef = useRef(false)
   const targetCornerPositionsRef = useRef(null)
@@ -145,7 +147,9 @@ export default function TargetCursor({
     }
     tickerFnRef.current = tickerFn
 
-    const moveHandler = (e) => moveCursor(e.clientX, e.clientY)
+    const moveHandler = (e) => {
+      moveCursor(e.clientX, e.clientY)
+    }
     eventRoot.addEventListener('mousemove', moveHandler)
 
     const scrollHandler = () => {
@@ -155,7 +159,15 @@ export default function TargetCursor({
       const mouseY = gsap.getProperty(cursorRef.current, 'y') + offsetY
       const elementUnderMouse = document.elementFromPoint(mouseX, mouseY)
       const isStillOverTarget = elementUnderMouse && (elementUnderMouse === activeTarget || elementUnderMouse.closest(targetSelector) === activeTarget)
-      if (!isStillOverTarget) currentLeaveHandler?.()
+      if (!isStillOverTarget) {
+        currentLeaveHandler?.()
+      } else if (hoverLabel && labelRef.current) {
+        // Reposition label centered on target on scroll (viewport coordinates)
+        const rect = activeTarget.getBoundingClientRect()
+        const labelX = rect.left + rect.width / 2
+        const labelY = rect.top + rect.height / 2
+        gsap.set(labelRef.current, { left: labelX, top: labelY })
+      }
     }
     eventRoot.addEventListener('scroll', scrollHandler, { passive: true })
 
@@ -219,12 +231,31 @@ export default function TargetCursor({
         })
       })
 
+      // Show hover label centered on target and blur target
+      if (hoverLabel && labelRef.current) {
+        const targetLabel = target.getAttribute('data-cursor-label') || hoverLabel
+        labelRef.current.textContent = targetLabel
+        // Position label centered on the target element (viewport coordinates for fixed positioning)
+        const labelX = rect.left + rect.width / 2
+        const labelY = rect.top + rect.height / 2
+        gsap.set(labelRef.current, { left: labelX, top: labelY, opacity: 0 })
+        gsap.to(labelRef.current, { opacity: 1, duration: 0.25, ease: 'power2.out' })
+      }
+      // Blur the target element
+      gsap.to(target, { filter: 'blur(2px)', duration: 0.3, ease: 'power2.out' })
+
       const leaveHandler = () => {
         gsap.ticker.remove(tickerFnRef.current)
         isActiveRef.current = false
         targetCornerPositionsRef.current = null
         gsap.set(activeStrengthRef.current, { current: 0, overwrite: true })
         activeTarget = null
+        // Hide hover label
+        if (labelRef.current) {
+          gsap.to(labelRef.current, { opacity: 0, duration: 0.15, ease: 'power2.in' })
+        }
+        // Remove blur from target
+        gsap.to(target, { filter: 'blur(0px)', duration: 0.3, ease: 'power2.out' })
         if (cornersRef.current) {
           const cornersArr = Array.from(cornersRef.current)
           gsap.killTweensOf(cornersArr)
@@ -286,7 +317,7 @@ export default function TargetCursor({
       targetCornerPositionsRef.current = null
       activeStrengthRef.current.current = 0
     }
-  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isMobile, hoverDuration, parallaxOn, containerRef])
+  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isMobile, hoverDuration, parallaxOn, containerRef, hoverLabel])
 
   useEffect(() => {
     if (isMobile || !cursorRef.current || !spinTl.current) return
@@ -299,6 +330,7 @@ export default function TargetCursor({
   if (isMobile) return null
 
   return (
+    <>
     <div ref={cursorRef} style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none', zIndex: 9999, willChange: 'transform' }}>
       <div ref={dotRef} style={{ position: 'absolute', top: '50%', left: '50%', width: '4px', height: '4px', backgroundColor: '#fff', borderRadius: '50%', transform: 'translate(-50%, -50%)', willChange: 'transform' }} />
       <div className="target-cursor-corner" style={{ position: 'absolute', top: '50%', left: '50%', width: '12px', height: '12px', border: '3px solid #fff', transform: 'translate(-150%, -150%)', borderRight: 'none', borderBottom: 'none', willChange: 'transform' }} />
@@ -306,5 +338,13 @@ export default function TargetCursor({
       <div className="target-cursor-corner" style={{ position: 'absolute', top: '50%', left: '50%', width: '12px', height: '12px', border: '3px solid #fff', transform: 'translate(50%, 50%)', borderLeft: 'none', borderTop: 'none', willChange: 'transform' }} />
       <div className="target-cursor-corner" style={{ position: 'absolute', top: '50%', left: '50%', width: '12px', height: '12px', border: '3px solid #fff', transform: 'translate(-150%, 50%)', borderRight: 'none', borderTop: 'none', willChange: 'transform' }} />
     </div>
+    {hoverLabel && (
+      <div ref={labelRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', opacity: 0, willChange: 'transform', whiteSpace: 'nowrap', zIndex: 10000, transform: 'translate(-50%, -50%)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#fff', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)', padding: '6px 14px', border: '1px solid rgba(255,255,255,0.12)' }}>
+          {hoverLabel}
+        </span>
+      </div>
+    )}
+    </>
   )
 }

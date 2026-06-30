@@ -721,7 +721,7 @@ export default function ShowcaseScroll() {
 
       {/* ═══════════════ GALLERY ═══════════════ */}
       <div ref={galleryRef} style={{ position: 'absolute', inset: 0, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 clamp(24px, 5vw, 80px)', opacity: 0, pointerEvents: 'none' }}>
-        <TargetCursor containerRef={galleryRef} targetSelector=".cursor-target" />
+        <TargetCursor containerRef={galleryRef} targetSelector=".cursor-target" hoverLabel="Click for product showcase" />
         <div style={{ width: '100%', maxWidth: '1280px' }}>
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>

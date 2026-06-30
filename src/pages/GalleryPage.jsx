@@ -217,8 +217,8 @@ export default function GalleryPage() {
 
   const itemData = ITEM_DATA[item.slug] || ITEM_DATA['photo-lamps'] || ITEM_DATA['industrial-parts']
 
-  // Offset bottom UI when the variant panel is visible so it doesn't overlap
-  const VARIANT_PANEL_HEIGHT = hasVariants ? '148px' : '48px'
+  // Offset bottom UI (no longer needs variant switcher offset as it is right-centered)
+  const VARIANT_PANEL_HEIGHT = '48px'
 
   return (
     <>
@@ -409,13 +409,15 @@ export default function GalleryPage() {
                     </div>
                   </div>
                 )}
-                {/* ─── Variant Switcher — fixed bottom center, visible only for lamp pages ─── */}
+                {/* ─── Variant Switcher — fixed right center, visible only for lamp pages ─── */}
                 {hasVariants && (
                   <div style={{
                     position: 'fixed',
-                    bottom: '24px',
-                    left: '50%',
-                    transform: `translate(-50%, ${(1 - switcherOp) * 20}px)`,
+                    top: '50%',
+                    right: '32px',
+                    bottom: 'auto',
+                    left: 'auto',
+                    transform: `translate(${(1 - switcherOp) * 20}px, -50%)`,
                     opacity: switcherOp,
                     pointerEvents: switcherPtEvents,
                     zIndex: 100,
@@ -436,8 +438,9 @@ export default function GalleryPage() {
                     {/* Card tray */}
                     <div style={{
                       display: 'flex',
+                      flexDirection: 'column',
                       gap: '10px',
-                      padding: '12px 14px',
+                      padding: '14px 12px',
                       background: 'rgba(8,8,8,0.90)',
                       backdropFilter: 'blur(24px)',
                       WebkitBackdropFilter: 'blur(24px)',
